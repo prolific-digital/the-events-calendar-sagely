@@ -20,7 +20,7 @@ For a detailed guide on setup and troubleshooting, please refer to [our support 
 
 ### Installation
 
-1. **Download the Plugin:** Ensure you have the latest version of The Events Calendar - Sagely Integration Plugin.
+1. **Download the Plugin:** Ensure you have the latest version of [The Events Calendar - Sagely Integration Plugin](https://github.com/prolific-digital/the-events-calendar-sagely/releases).
 2. **Upload the Plugin:**
    - Go to your WordPress Dashboard.
    - Navigate to **Plugins > Add New**.
