@@ -4,6 +4,8 @@
 
 The Events Calendar - Sagely Integration plugin seamlessly connects your Sagely API with The Events Calendar plugin on your WordPress site. This integration allows you to automatically pull events from the Sagely platform directly into your calendar, ensuring that your community's event information is always up-to-date.
 
+> **Important:** The Events Calendar plugin must be installed and activated prior to activating The Events Calendar - Sagely Integration plugin. Without it, this plugin will not function correctly.
+
 For a detailed guide on setup and troubleshooting, please refer to [our support documentation](https://prolificdigital.notion.site/The-Events-Calendar-Sagely-Addon-ce2eb70042734bcc9edb0dc8c4c6ec54).
 
 ## Key Features
