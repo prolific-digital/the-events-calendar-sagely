@@ -142,9 +142,12 @@ class SagelyIntegration {
 
     // Handle Sync Now button press separately
     if (isset($_POST['sync_now'])) {
+      $site_url = get_site_url();
+      $events_url = $site_url . '/wp-admin/edit.php?post_type=tribe_events';
+
       // $this->sync_events(); // Trigger sync only if 'Sync Now' is clicked
       wp_schedule_single_event(time(), 'sagely_event_sync'); // Schedule to run immediately
-      $message = __('Event sync in progress. Review Events /wp-admin/edit.php?post_type=tribe_events', 'the-events-calendar-sagely');
+      $message = __('Event sync in progress. <a href="' . esc_url($events_url) . '">View Events</a>', 'the-events-calendar-sagely');
     }
 
     $api_key = get_option('sagely_api_key', '');
@@ -154,7 +157,7 @@ class SagelyIntegration {
       <h1><?php esc_html_e('Sagely API Settings', 'the-events-calendar-sagely'); ?></h1>
       <?php if ($message): ?>
         <div class="<?php echo esc_attr($message_type); ?>">
-          <p><?php echo esc_html($message); ?></p>
+          <p><?php echo $message; ?></p>
         </div>
       <?php endif; ?>
 
