@@ -142,8 +142,9 @@ class SagelyIntegration {
 
     // Handle Sync Now button press separately
     if (isset($_POST['sync_now'])) {
-      $this->sync_events(); // Trigger sync only if 'Sync Now' is clicked
-      $message = __('Events synchronized successfully.', 'the-events-calendar-sagely');
+      // $this->sync_events(); // Trigger sync only if 'Sync Now' is clicked
+      wp_schedule_single_event(time(), 'sagely_event_sync'); // Schedule to run immediately
+      $message = __('Event sync in progress. Review Events /wp-admin/edit.php?post_type=tribe_events', 'the-events-calendar-sagely');
     }
 
     $api_key = get_option('sagely_api_key', '');
