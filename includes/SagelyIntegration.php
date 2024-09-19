@@ -224,20 +224,17 @@ class SagelyIntegration {
       return;
     }
 
+    // Fetch the WordPress timezone
+    $timezone = wp_timezone();
+
     foreach ($sagely_events['items'] as $event) {
       $sagely_event_id = $this->get_event_id_from_href($event['_href']);
       $existing_event_id = $this->get_existing_event_id_by_meta($sagely_event_id);
-
-      // bs_log_error($sagely_event_id);
-      // bs_log_error($existing_event);
-
-      // return;
 
       $name = isset($event['name']) ? $event['name'] : __('Unnamed Event', 'the-events-calendar-sagely');
       $startTime = isset($event['startTime']) ? $event['startTime'] : null;
       $endTime = isset($event['endTime']) ? $event['endTime'] : date('Y-m-d H:i:s', strtotime('+1 hours', strtotime($startTime)));
       $description = isset($event['description']) ? $event['description'] : '';
-      $timezone = $this->extract_timezone_from_date($startTime);
 
       // Ensure category exists before assigning
       $category_name = isset($event['calendar']['name']) ? $event['calendar']['name'] : 'Uncategorized';
@@ -259,11 +256,15 @@ class SagelyIntegration {
         continue;
       }
 
+      // Apply WordPress timezone to start and end times
+      $start_time_obj = new \DateTime($startTime, $timezone);
+      $end_time_obj = new \DateTime($endTime, $timezone);
+
       $args = [
         'status'            => 'publish',
         'title'             => $name,
-        'start_date'        => date('Y-m-d H:i:s', strtotime($startTime)),
-        'end_date'          => date('Y-m-d H:i:s', strtotime($endTime)),
+        'start_date'        => $start_time_obj->format('Y-m-d H:i:s'),
+        'end_date'          => $end_time_obj->format('Y-m-d H:i:s'),
         'description'       => $description,
         'venue'             => $venue_id,
         'category'          => [$category_id],
@@ -314,13 +315,6 @@ class SagelyIntegration {
       $new_venue_id = wp_insert_post($venue_args);
       return $new_venue_id;
     }
-  }
-
-
-  private function extract_timezone_from_date($datetime) {
-    $datetime_obj = new \DateTime($datetime);
-    $timezone = $datetime_obj->getTimezone();
-    return $timezone->getName();
   }
 
   private function ensure_category_exists($category_name) {

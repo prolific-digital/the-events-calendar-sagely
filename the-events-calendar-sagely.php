@@ -4,7 +4,7 @@
  * Plugin Name: The Events Calendar - Sagely Integration
  * Plugin URI:  https://prolificdigital.com
  * Description: Integrates Sagely with The Events Calendar plugin.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Prolific Digital
  * Author URI:  https://prolificdigital.com
  * License:     GPL-2.0+
