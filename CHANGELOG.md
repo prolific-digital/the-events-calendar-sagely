@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - 2026-09-29
 
+### Security
+- The **Events > Sagely API** settings form and the **Sync Now** button now check a nonce and the `manage_options` capability. Before, a page on another site could change the API key or sync frequency, or start a sync, through a logged-in administrator's browser (CSRF). Input is unslashed and sanitized (the frequency must be a whole number of hours, 1 or more), and the help text is escaped.
+
 ### Added
 - Automatic updates from the Prolific Digital license server (`api.prolificdigital.io`). Set `PROLIFIC_LICENSE_KEY_TEC_SAGELY` in `wp-config.php` (or use the `prolific_license_key` filter). plugin-update-checker ^5.7 is installed with Composer.
 - `Requires Plugins: the-events-calendar`, so WordPress enforces the dependency.

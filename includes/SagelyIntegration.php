@@ -78,7 +78,7 @@ class SagelyIntegration {
   // Add the settings page under The Events Calendar menu
   public function add_settings_page() {
     if ($this->check_events_calendar_active()) {
-      add_submenu_page(
+      $hook = add_submenu_page(
         'edit.php?post_type=tribe_events',
         __('Sagely API Settings', 'tec-sagely'),
         __('Sagely API', 'tec-sagely'),
@@ -86,6 +86,9 @@ class SagelyIntegration {
         'sagely-api-settings',
         [$this, 'render_settings_page']
       );
+      if ($hook) {
+        add_action('load-' . $hook, [$this, 'handle_settings_submission']);
+      }
     }
   }
 
@@ -112,42 +115,74 @@ class SagelyIntegration {
   }
 
 
-  // Render the settings page form
-  public function render_settings_page() {
-    $message = '';
-    $message_type = 'updated';
+  /**
+   * Message shown above the settings form after a submission.
+   *
+   * @var string
+   */
+  private $message = '';
+
+  /**
+   * Notice class for $message ('updated' or 'error').
+   *
+   * @var string
+   */
+  private $message_type = 'updated';
+
+  /**
+   * Handle the settings and Sync Now forms.
+   *
+   * Runs on the page's load-{hook} action, before any output, so a failed
+   * nonce or capability check can stop the request cleanly.
+   */
+  public function handle_settings_submission() {
+    if (!isset($_POST['sagely_api_key']) && !isset($_POST['sagely_sync_frequency']) && !isset($_POST['sync_now'])) {
+      return;
+    }
+
+    if (!current_user_can('manage_options')) {
+      wp_die(esc_html__('You do not have permission to change these settings.', 'tec-sagely'), 403);
+    }
+
+    // Handle Sync Now button press separately
+    if (isset($_POST['sync_now'])) {
+      check_admin_referer('tec_sagely_sync_now');
+      $this->sync_events(); // Trigger sync only if 'Sync Now' is clicked
+      $this->message = __('Events synchronized successfully.', 'tec-sagely');
+      return;
+    }
+
+    check_admin_referer('tec_sagely_save_settings');
 
     // Handle form submissions for API key and Sync Frequency
     if (isset($_POST['sagely_api_key'])) {
-      $api_key = sanitize_text_field($_POST['sagely_api_key']);
+      $api_key = sanitize_text_field(wp_unslash($_POST['sagely_api_key']));
       update_option('sagely_api_key', $api_key);
 
       if ($this->test_api_key($api_key)) {
-        $message = __('API Key is valid.', 'tec-sagely');
+        $this->message = __('API Key is valid.', 'tec-sagely');
       } else {
-        $message = __('API Key is invalid. Please check and try again.', 'tec-sagely');
-        $message_type = 'error';
+        $this->message = __('API Key is invalid. Please check and try again.', 'tec-sagely');
+        $this->message_type = 'error';
       }
     }
 
     if (isset($_POST['sagely_sync_frequency'])) {
-      $sync_frequency = intval($_POST['sagely_sync_frequency']);
+      $sync_frequency = max(1, absint(wp_unslash($_POST['sagely_sync_frequency'])));
       update_option('sagely_sync_frequency', $sync_frequency);
 
       // Only reschedule the cron event without triggering a sync
       $this->clear_scheduled_event_sync();
       $this->schedule_event_sync();
-      $message = __('Sync frequency updated successfully.', 'tec-sagely');
+      $this->message = __('Sync frequency updated successfully.', 'tec-sagely');
     }
+  }
 
+  // Render the settings page form
+  public function render_settings_page() {
+    $message = $this->message;
+    $message_type = $this->message_type;
     $sync_frequency = get_option('sagely_sync_frequency', 24);
-
-    // Handle Sync Now button press separately
-    if (isset($_POST['sync_now'])) {
-      $this->sync_events(); // Trigger sync only if 'Sync Now' is clicked
-      $message = __('Events synchronized successfully.', 'tec-sagely');
-    }
-
     $api_key = get_option('sagely_api_key', '');
 
 ?>
@@ -159,9 +194,10 @@ class SagelyIntegration {
         </div>
       <?php endif; ?>
 
-      <p><?php echo __('The Sagely integration is designed to pull events from the Sagely API directly into The Events Calendar. Each API key provided by Sagely is specific to a single community. You will need to retrieve your API key from Sagely or contact Sagely support if you do not have it. For more details, please refer to <a href="https://prolificdigital.notion.site/The-Events-Calendar-Sagely-Addon-ce2eb70042734bcc9edb0dc8c4c6ec54?pvs=4" target="_blank">our support documentation</a>.', 'tec-sagely'); ?></p>
+      <p><?php echo wp_kses(__('The Sagely integration is designed to pull events from the Sagely API directly into The Events Calendar. Each API key provided by Sagely is specific to a single community. You will need to retrieve your API key from Sagely or contact Sagely support if you do not have it. For more details, please refer to <a href="https://prolificdigital.notion.site/The-Events-Calendar-Sagely-Addon-ce2eb70042734bcc9edb0dc8c4c6ec54?pvs=4" target="_blank">our support documentation</a>.', 'tec-sagely'), ['a' => ['href' => [], 'target' => [], 'rel' => []]]); ?></p>
 
       <form method="POST" action="">
+        <?php wp_nonce_field('tec_sagely_save_settings'); ?>
         <table class="form-table">
           <tr valign="top">
             <th scope="row"><?php esc_html_e('Sagely API Key', 'tec-sagely'); ?></th>
@@ -180,6 +216,7 @@ class SagelyIntegration {
       <p><?php esc_html_e('Click the "Sync Now" button below to manually synchronize events with the Sagely API. This will immediately pull the latest events and update your calendar.', 'tec-sagely'); ?></p>
 
       <form method="POST" action="">
+        <?php wp_nonce_field('tec_sagely_sync_now'); ?>
         <input type="hidden" name="sync_now" value="1" />
         <?php submit_button(__('Sync Now', 'tec-sagely'), 'secondary'); ?>
       </form>
