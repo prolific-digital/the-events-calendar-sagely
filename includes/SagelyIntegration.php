@@ -2,6 +2,8 @@
 
 namespace ProlificDigital\SagelyIntegration\Includes;
 
+defined( 'ABSPATH' ) || exit;
+
 class SagelyIntegration {
 
   public function __construct() {
