@@ -292,9 +292,12 @@ class SagelyIntegration {
 
       // return;
 
+      // Sagely times carry their own UTC offset. gmdate() formats them in UTC,
+      // which is exactly what date() produced (WordPress forces PHP's default
+      // timezone to UTC) but no longer depends on that runtime setting.
       $name = isset($event['name']) ? $event['name'] : __('Unnamed Event', 'tec-sagely');
       $startTime = isset($event['startTime']) ? $event['startTime'] : null;
-      $endTime = isset($event['endTime']) ? $event['endTime'] : date('Y-m-d H:i:s', strtotime('+1 hours', strtotime($startTime)));
+      $endTime = isset($event['endTime']) ? $event['endTime'] : gmdate('Y-m-d H:i:s', strtotime('+1 hours', strtotime($startTime)));
       $description = isset($event['description']) ? $event['description'] : '';
       $timezone = $this->extract_timezone_from_date($startTime);
 
@@ -321,8 +324,8 @@ class SagelyIntegration {
       $args = [
         'status'            => 'publish',
         'title'             => $name,
-        'start_date'        => date('Y-m-d H:i:s', strtotime($startTime)),
-        'end_date'          => date('Y-m-d H:i:s', strtotime($endTime)),
+        'start_date'        => gmdate('Y-m-d H:i:s', strtotime($startTime)),
+        'end_date'          => gmdate('Y-m-d H:i:s', strtotime($endTime)),
         'description'       => $description,
         'venue'             => $venue_id,
         'category'          => [$category_id],
@@ -332,8 +335,8 @@ class SagelyIntegration {
       if ($existing_event_id) {
         // Update the existing event
         tribe_events()->where('id', $existing_event_id)->set('title', $name)->save();
-        tribe_events()->where('id', $existing_event_id)->set('start_date', date('Y-m-d H:i:s', strtotime($startTime)))->save();
-        tribe_events()->where('id', $existing_event_id)->set('end_date', date('Y-m-d H:i:s', strtotime($endTime)))->save();
+        tribe_events()->where('id', $existing_event_id)->set('start_date', gmdate('Y-m-d H:i:s', strtotime($startTime)))->save();
+        tribe_events()->where('id', $existing_event_id)->set('end_date', gmdate('Y-m-d H:i:s', strtotime($endTime)))->save();
         tribe_events()->where('id', $existing_event_id)->set('description', $description)->save();
         tribe_events()->where('id', $existing_event_id)->set('venue', $venue_id)->save();
         tribe_events()->where('id', $existing_event_id)->set('category', [$category_id])->save();

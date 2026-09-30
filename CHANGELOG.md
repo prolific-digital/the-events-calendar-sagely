@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - The scheduled import never ran. The activation and deactivation hooks were registered from the class file on `plugins_loaded`, so they never fired and the `sagely_event_sync` cron event was never created. They are now registered from the main plugin file. Sites that are already active create the missing event on the next page load, once an API key is saved, and deactivating the plugin clears it.
+- Imported event dates are formatted with `gmdate()` instead of `date()`. The stored times are unchanged.
 
 ### Added
 - Automatic updates from the Prolific Digital license server (`api.prolificdigital.io`). Set `PROLIFIC_LICENSE_KEY_TEC_SAGELY` in `wp-config.php` (or use the `prolific_license_key` filter). plugin-update-checker ^5.7 is installed with Composer.
