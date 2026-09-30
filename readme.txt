@@ -34,6 +34,7 @@ See the [support documentation](https://prolificdigital.notion.site/The-Events-C
 
 = 1.1.0 =
 * Security: the settings form and Sync Now button now require a nonce and the manage_options capability (CSRF fix).
+* Fix: the scheduled import is now set up on activation. Existing installs set it up automatically on the next page load.
 * Updates come from the Prolific Digital license server. Define `PROLIFIC_LICENSE_KEY_TEC_SAGELY` to receive them.
 * Main file renamed to `tec-sagely.php`; re-activate the plugin after updating.
 * Text domain changed to `tec-sagely`. License is now GPL-2.0-or-later.

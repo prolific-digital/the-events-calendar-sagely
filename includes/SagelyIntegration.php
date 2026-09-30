@@ -8,10 +8,13 @@ class SagelyIntegration {
 
   public function __construct() {
     add_action('admin_menu', [$this, 'add_settings_page']);
-    add_filter('cron_schedules', [$this, 'custom_cron_schedule']);
-    register_activation_hook(__FILE__, [$this, 'schedule_event_sync']);
-    register_deactivation_hook(__FILE__, [$this, 'clear_scheduled_event_sync']);
+    add_filter('cron_schedules', [self::class, 'custom_cron_schedule']);
     add_action('sagely_event_sync', [$this, 'run_daily_sync']);
+
+    // Self-heal: sites activated before 1.1.0 never got the cron event,
+    // because the activation hook was registered from this file on
+    // plugins_loaded and never fired. Schedule it if it is missing.
+    add_action('init', [self::class, 'schedule_event_sync']);
 
     // Reorder the submenu after it's been added
     add_action('admin_menu', [$this, 'reorder_submenu'], 999);
@@ -31,26 +34,43 @@ class SagelyIntegration {
     echo '<div class="notice notice-error"><p>' . esc_html__('Sagely Integration for The Events Calendar requires The Events Calendar Plugin to be installed and active.', 'tec-sagely') . '</p></div>';
   }
 
-  // Schedule the cron event on plugin activation
-  public function schedule_event_sync() {
+  /**
+   * Activation callback, registered from the main plugin file.
+   *
+   * The cron_schedules filter is not registered yet during the activation
+   * request (the constructor runs on plugins_loaded), so add it first or
+   * wp_schedule_event() rejects the custom recurrence.
+   */
+  public static function activate() {
+    if (false === has_filter('cron_schedules', [self::class, 'custom_cron_schedule'])) {
+      add_filter('cron_schedules', [self::class, 'custom_cron_schedule']);
+    }
+    self::schedule_event_sync();
+  }
+
+  /**
+   * Deactivation callback, registered from the main plugin file.
+   */
+  public static function deactivate() {
+    self::clear_scheduled_event_sync();
+  }
+
+  // Schedule the cron event if the plugin is configured and it is missing.
+  // Runs on activation and on every init (self-heal).
+  public static function schedule_event_sync() {
     $api_key = get_option('sagely_api_key');
-    $sync_frequency = get_option('sagely_sync_frequency', 24); // Default to 24 hours if not set
+    $sync_frequency = max(1, (int) get_option('sagely_sync_frequency', 24)); // Default to 24 hours if not set
 
     if ($api_key && !wp_next_scheduled('sagely_event_sync')) {
       // Calculate the next interval based on the sync frequency
-      $next_run_time = strtotime('+' . $sync_frequency . ' hours', time());
+      $next_run_time = time() + $sync_frequency * HOUR_IN_SECONDS;
       wp_schedule_event($next_run_time, 'custom_sagely_interval', 'sagely_event_sync');
     }
   }
 
-
-
-  // Clear the scheduled cron event on plugin deactivation
-  public function clear_scheduled_event_sync() {
-    $timestamp = wp_next_scheduled('sagely_event_sync');
-    if ($timestamp) {
-      wp_unschedule_event($timestamp, 'sagely_event_sync');
-    }
+  // Clear every scheduled instance of the sync event.
+  public static function clear_scheduled_event_sync() {
+    wp_clear_scheduled_hook('sagely_event_sync');
   }
 
 
@@ -62,8 +82,8 @@ class SagelyIntegration {
   }
 
   // Add a custom interval based on the sync frequency in hours
-  public function custom_cron_schedule($schedules) {
-    $sync_frequency = get_option('sagely_sync_frequency', 24); // Default to 24 hours if not set
+  public static function custom_cron_schedule($schedules) {
+    $sync_frequency = max(1, (int) get_option('sagely_sync_frequency', 24)); // Default to 24 hours if not set
     $interval = $sync_frequency * 3600; // Convert hours to seconds
 
     $schedules['custom_sagely_interval'] = [
@@ -172,8 +192,8 @@ class SagelyIntegration {
       update_option('sagely_sync_frequency', $sync_frequency);
 
       // Only reschedule the cron event without triggering a sync
-      $this->clear_scheduled_event_sync();
-      $this->schedule_event_sync();
+      self::clear_scheduled_event_sync();
+      self::schedule_event_sync();
       $this->message = __('Sync frequency updated successfully.', 'tec-sagely');
     }
   }

@@ -45,6 +45,12 @@ add_action(
 // Directly include the class file.
 require_once TEC_SAGELY_PLUGIN_DIR . 'includes/SagelyIntegration.php';
 
+// Activation hooks must be registered from the main plugin file while it is
+// being loaded; registering them later (e.g. on plugins_loaded) means they
+// never fire.
+register_activation_hook( TEC_SAGELY_PLUGIN_FILE, array( ProlificDigital\SagelyIntegration\Includes\SagelyIntegration::class, 'activate' ) );
+register_deactivation_hook( TEC_SAGELY_PLUGIN_FILE, array( ProlificDigital\SagelyIntegration\Includes\SagelyIntegration::class, 'deactivate' ) );
+
 // The namespaced ProlificDigital\SagelyIntegration\init() bootstrap lives in
 // includes/bootstrap.php so this file can start with the ABSPATH guard
 // (a namespace declaration must be a file's first statement).
