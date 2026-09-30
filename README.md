@@ -16,6 +16,16 @@ For a detailed guide on setup and troubleshooting, please refer to [our support 
 - **Location (Venue) Management:** Automatically create or assign venues based on event location data.
 - **Tag and Category Management:** Automatically create and assign tags and categories based on event data.
 
+## Requirements
+
+| | |
+|---|---|
+| WordPress | 6.5+ |
+| PHP | 8.4+ |
+| Plugins | The Events Calendar (`Requires Plugins: the-events-calendar`) |
+| Text domain | `tec-sagely` |
+| License | GPL-2.0-or-later |
+
 ## Getting Started
 
 ### Installation
@@ -102,6 +112,36 @@ Once activated, follow these steps to configure the plugin and start syncing eve
 - **Can I manually trigger a sync?** Yes, use the "Sync Now" button on the settings page.
 - **What happens if I update an event in Sagely?** The plugin will update the corresponding event in The Events Calendar.
 - **Why aren't venues appearing for some events?** Venue information may be missing in the Sagely data; you'll need to manually assign it.
+
+## Updates
+
+Updates are served by the Prolific Digital license server. Add the site's license key to `wp-config.php`:
+
+```php
+define( 'PROLIFIC_LICENSE_KEY_TEC_SAGELY', 'your-key' );
+```
+
+You can also supply the key with the `prolific_license_key` filter, which receives `( $key, 'tec-sagely' )`.
+
+## Stored data
+
+| Key | Type | Notes |
+|---|---|---|
+| `sagely_api_key`, `sagely_sync_frequency` | options | Settings. Deleted on uninstall. |
+| `sagely_event_sync` | cron hook | Scheduled sync. Cleared on uninstall. |
+| `_sagely_event_id` | post meta on `tribe_events` | Links imported events to Sagely. Kept on uninstall. |
+
+## Development and releasing
+
+```sh
+ddev exec -d /var/www/html/wp-content/plugins/the-events-calendar-sagely composer install
+ddev exec -d /var/www/html/wp-content/plugins/the-events-calendar-sagely composer lint
+ddev exec -d /var/www/html/wp-content/plugins/the-events-calendar-sagely composer phpcs
+```
+
+`vendor/` is not committed; a git checkout needs `composer install` before the updater loads.
+
+To release: bump the version in the plugin header, `TEC_SAGELY_VERSION` and `readme.txt` `Stable tag`; add a `## [x.y.z] - YYYY-MM-DD` section to `CHANGELOG.md`; merge to `main` and push a `vx.y.z` tag. The shared release workflow builds `tec-sagely.zip` and attaches it to a GitHub Release. See [`CHANGELOG.md`](CHANGELOG.md) for changes.
 
 ## Support and Documentation
 
