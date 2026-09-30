@@ -26,7 +26,7 @@ class SagelyIntegration {
 
   // Admin notice if The Events Calendar is not active
   public function admin_notice() {
-    echo '<div class="notice notice-error"><p>' . esc_html__('Sagely Integration for The Events Calendar requires The Events Calendar Plugin to be installed and active.', 'the-events-calendar-sagely') . '</p></div>';
+    echo '<div class="notice notice-error"><p>' . esc_html__('Sagely Integration for The Events Calendar requires The Events Calendar Plugin to be installed and active.', 'tec-sagely') . '</p></div>';
   }
 
   // Schedule the cron event on plugin activation
@@ -66,7 +66,7 @@ class SagelyIntegration {
 
     $schedules['custom_sagely_interval'] = [
       'interval' => $interval,
-      'display'  => sprintf(__('Every %d Hours', 'the-events-calendar-sagely'), $sync_frequency),
+      'display'  => sprintf(__('Every %d Hours', 'tec-sagely'), $sync_frequency),
     ];
 
     return $schedules;
@@ -78,8 +78,8 @@ class SagelyIntegration {
     if ($this->check_events_calendar_active()) {
       add_submenu_page(
         'edit.php?post_type=tribe_events',
-        __('Sagely API Settings', 'the-events-calendar-sagely'),
-        __('Sagely API', 'the-events-calendar-sagely'),
+        __('Sagely API Settings', 'tec-sagely'),
+        __('Sagely API', 'tec-sagely'),
         'manage_options',
         'sagely-api-settings',
         [$this, 'render_settings_page']
@@ -121,9 +121,9 @@ class SagelyIntegration {
       update_option('sagely_api_key', $api_key);
 
       if ($this->test_api_key($api_key)) {
-        $message = __('API Key is valid.', 'the-events-calendar-sagely');
+        $message = __('API Key is valid.', 'tec-sagely');
       } else {
-        $message = __('API Key is invalid. Please check and try again.', 'the-events-calendar-sagely');
+        $message = __('API Key is invalid. Please check and try again.', 'tec-sagely');
         $message_type = 'error';
       }
     }
@@ -135,7 +135,7 @@ class SagelyIntegration {
       // Only reschedule the cron event without triggering a sync
       $this->clear_scheduled_event_sync();
       $this->schedule_event_sync();
-      $message = __('Sync frequency updated successfully.', 'the-events-calendar-sagely');
+      $message = __('Sync frequency updated successfully.', 'tec-sagely');
     }
 
     $sync_frequency = get_option('sagely_sync_frequency', 24);
@@ -143,30 +143,30 @@ class SagelyIntegration {
     // Handle Sync Now button press separately
     if (isset($_POST['sync_now'])) {
       $this->sync_events(); // Trigger sync only if 'Sync Now' is clicked
-      $message = __('Events synchronized successfully.', 'the-events-calendar-sagely');
+      $message = __('Events synchronized successfully.', 'tec-sagely');
     }
 
     $api_key = get_option('sagely_api_key', '');
 
 ?>
     <div class="wrap">
-      <h1><?php esc_html_e('Sagely API Settings', 'the-events-calendar-sagely'); ?></h1>
+      <h1><?php esc_html_e('Sagely API Settings', 'tec-sagely'); ?></h1>
       <?php if ($message): ?>
         <div class="<?php echo esc_attr($message_type); ?>">
           <p><?php echo esc_html($message); ?></p>
         </div>
       <?php endif; ?>
 
-      <p><?php echo __('The Sagely integration is designed to pull events from the Sagely API directly into The Events Calendar. Each API key provided by Sagely is specific to a single community. You will need to retrieve your API key from Sagely or contact Sagely support if you do not have it. For more details, please refer to <a href="https://prolificdigital.notion.site/The-Events-Calendar-Sagely-Addon-ce2eb70042734bcc9edb0dc8c4c6ec54?pvs=4" target="_blank">our support documentation</a>.', 'the-events-calendar-sagely'); ?></p>
+      <p><?php echo __('The Sagely integration is designed to pull events from the Sagely API directly into The Events Calendar. Each API key provided by Sagely is specific to a single community. You will need to retrieve your API key from Sagely or contact Sagely support if you do not have it. For more details, please refer to <a href="https://prolificdigital.notion.site/The-Events-Calendar-Sagely-Addon-ce2eb70042734bcc9edb0dc8c4c6ec54?pvs=4" target="_blank">our support documentation</a>.', 'tec-sagely'); ?></p>
 
       <form method="POST" action="">
         <table class="form-table">
           <tr valign="top">
-            <th scope="row"><?php esc_html_e('Sagely API Key', 'the-events-calendar-sagely'); ?></th>
+            <th scope="row"><?php esc_html_e('Sagely API Key', 'tec-sagely'); ?></th>
             <td><input type="text" name="sagely_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" /></td>
           </tr>
           <tr valign="top">
-            <th scope="row"><?php esc_html_e('Sync Frequency (in hours)', 'the-events-calendar-sagely'); ?></th>
+            <th scope="row"><?php esc_html_e('Sync Frequency (in hours)', 'tec-sagely'); ?></th>
             <td><input type="number" name="sagely_sync_frequency" value="<?php echo esc_attr($sync_frequency); ?>" class="regular-text" min="1" /></td>
           </tr>
 
@@ -174,12 +174,12 @@ class SagelyIntegration {
         <?php submit_button(); ?>
       </form>
 
-      <h2><?php esc_html_e('Manual Synchronization', 'the-events-calendar-sagely'); ?></h2>
-      <p><?php esc_html_e('Click the "Sync Now" button below to manually synchronize events with the Sagely API. This will immediately pull the latest events and update your calendar.', 'the-events-calendar-sagely'); ?></p>
+      <h2><?php esc_html_e('Manual Synchronization', 'tec-sagely'); ?></h2>
+      <p><?php esc_html_e('Click the "Sync Now" button below to manually synchronize events with the Sagely API. This will immediately pull the latest events and update your calendar.', 'tec-sagely'); ?></p>
 
       <form method="POST" action="">
         <input type="hidden" name="sync_now" value="1" />
-        <?php submit_button(__('Sync Now', 'the-events-calendar-sagely'), 'secondary'); ?>
+        <?php submit_button(__('Sync Now', 'tec-sagely'), 'secondary'); ?>
       </form>
     </div>
 <?php
@@ -233,7 +233,7 @@ class SagelyIntegration {
 
       // return;
 
-      $name = isset($event['name']) ? $event['name'] : __('Unnamed Event', 'the-events-calendar-sagely');
+      $name = isset($event['name']) ? $event['name'] : __('Unnamed Event', 'tec-sagely');
       $startTime = isset($event['startTime']) ? $event['startTime'] : null;
       $endTime = isset($event['endTime']) ? $event['endTime'] : date('Y-m-d H:i:s', strtotime('+1 hours', strtotime($startTime)));
       $description = isset($event['description']) ? $event['description'] : '';
